@@ -310,7 +310,14 @@ public class LoginController {
 
 今のままでもログインのためのユーザー情報(ユーザー名、パスワード)を取得することはできますが、nicknameなどの自分で設定したカラムの値は取得できません。これらの値を取得できるようにするためには、認証用のクラスをカスタマイズする必要があります。
 
-
+このセクションでは、以下のテーブル、ファイルを作成及び更新します。
+* UserMapper.xml
+* UserMapper.java
+* LoginUser.java
+* UserService.java
+* UserDetailsServiceImpl.java
+* SecurityConfig.java
+* LoginController.java
 
 ### ユーザー情報を取得するための仕組みを作る
 #### UserMapper.xmlを作成する
@@ -419,8 +426,8 @@ public class UserServiceImpl implements UserService{
 ```
 ここまでで、データベースからカスタマイズしたUser情報を取得することができるようになりましたが、カスタマイズされた情報でも認証を行えるように既存のクラスを拡張していきます。
 
-## 認証機能のカスタマイズ
-### UserDetailsServiceImpl.javaを作成する
+### 認証機能のカスタマイズ
+#### UserDetailsServiceImpl.javaを作成する
 loginUserが見当たらなかった場合は、エラーを返すようにしています。
 ```java:UserDetailsServiceImpl.java
 @Service
@@ -437,7 +444,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	}
 }
 ```
-### SecurityConfig.javaを編集
+##### SecurityConfig.javaを編集
 今まではSecurityConfigに書いたusersメソッドで認証に使うデータを取得していましたが、カスタマイズしたクラスで得たデータをもとに認証する必要があるので、usersメソッドをコメントアウトしてしまいましょう。
 ```java:SecurityConfig.java
 // データベースと連携してログイン処理を行う
@@ -453,7 +460,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 //    	return users;
 //    }
 ```
-### LoginController.javaを編集
+#### LoginController.javaを編集
 ここまでで、User情報を拡張したLoginUserの準備ができています。Controllerから確認できるように一部編集してみます。/homeへのアクセス時の処理を以下のように書き換えて、ユーザーのニックネームが取得できているか、コンソールから確認してみましょう。
 ```java:LoginController.java
 @Controller
