@@ -153,7 +153,8 @@ public class LoginController {
 </html>
 ```
 
-"http://127.0.0.1:8080/login"にアクセスしてみてください。作成したlogin.htmlの画面が表示されると思います。同じようにユーザー名とパスワードを入力し、以下のような画面が表示されていれば完成です。
+http://127.0.0.1:8080/login
+にアクセスしてみてください。作成したlogin.htmlの画面が表示されると思います。同じようにユーザー名とパスワードを入力し、以下のような画面が表示されていれば完成です。
 
 <img src="./imagesForReadMe/home.jpg">
 
@@ -215,7 +216,8 @@ public void login() {
     System.out.println(pass);
 }
 ```
-"http://127.0.0.1:8080/login"にアクセスしてみてください。以下のように、コンソール画面にハッシュ化された文字列が出力されます。ここでは、passwordという文字をハッシュ化した文字列を例示します。
+http://127.0.0.1:8080/login
+にアクセスしてみてください。以下のように、コンソール画面にハッシュ化された文字列が出力されます。ここでは、passwordという文字をハッシュ化した文字列を例示します。
 
 <b>{bcrypt}$2a$10$M5JloOG9EyThd3s/2xocKOU3ojKF5dlMvZnh/tAEbuDHBGrWAfWWa</b>
 
