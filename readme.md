@@ -178,8 +178,8 @@ http://127.0.0.1:8080/login
         <td>id</td><td>INT</td><td><ul><li>PrimaryKey</li><li>NotNull</li><li>AutoIncrement</li></ul></td>
     </tr>
     <tr>
-        <td>username</td><td>VARCHAR(45)</td><td><ul><li>Unique</li><l
-        i>NotNull</li></ul></td>
+        <td>username</td><td>VARCHAR(45)</td><td><ul><li>Unique</li>
+        <li>NotNull</li></ul></td>
     </tr>
     <tr>
         <td>password</td><td>VARCHAR(255)</td><td><ul><li>NotNull</li></ul></td>
@@ -309,6 +309,8 @@ public class LoginController {
 ## ログインエラー時にエラーメッセージを表示
 
 今のままでもログインのためのユーザー情報(ユーザー名、パスワード)を取得することはできますが、nicknameなどの自分で設定したカラムの値は取得できません。これらの値を取得できるようにするためには、認証用のクラスをカスタマイズする必要があります。
+
+
 
 ### ユーザー情報を取得するための仕組みを作る
 #### UserMapper.xmlを作成する
