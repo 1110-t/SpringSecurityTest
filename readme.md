@@ -75,10 +75,12 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         // csrf認証は使わない
         http.csrf().disable();
+        http.headers().frameOptions().disable();
         //　cssなどのリソースファイルにはログイン無しでもアクセスが可能
         http.authorizeHttpRequests(authz -> authz
             .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
             .mvcMatchers("/").permitAll() // ログインなしでもアクセス可能なページ
+            .antMatchers("/h2-console/**").permitAll() // ログインなしでもアクセス可能なページパターン
             .mvcMatchers("/general").hasRole("GENERAL") // 権限GENERALがアクセス可能
             .mvcMatchers("/admin").hasRole("ADMIN") // 権限ADMINがアクセス可能
             .anyRequest().authenticated() // 他のURLについてはログイン後にアクセスが可能となる
@@ -109,8 +111,8 @@ public class SecurityConfig {
 @Controller
 public class LoginController {
 	@GetMapping("/login")
-	public void login() {
-		System.out.println("login");
+	public String login() {
+        return "login";
 	}
 	@GetMapping("/home")
 	public String home() {
@@ -185,9 +187,6 @@ http://127.0.0.1:8080/login
         <td>password</td><td>VARCHAR(255)</td><td><ul><li>NotNull</li></ul></td>
     </tr>
     <tr>
-        <td>enabled</td><td>TINYINT</td><td><ul><li>NotNull</li></ul></td>
-    </tr>
-    <tr>
         <td>nickname</td><td>VARCHAR(45)</td><td></td>
     </tr>
 </table>
@@ -210,10 +209,11 @@ http://127.0.0.1:8080/login
 SpringSecurityではパスワードはハッシュ化して登録します。そのためLoginControllerの中身を一部修正して、ハッシュ化したパスワードをコンソール画面に表示するようにしましょう。
 ```java:LoginController.java
 @GetMapping("/login")
-public void login() {
+public String login() {
     // encodeメソッドの引数にハッシュ化したいパスワードの文字を入力します。
     String pass = PasswordEncoderFactories.createDelegatingPasswordEncoder().encode("password");
     System.out.println(pass);
+    return "login";
 }
 ```
 http://127.0.0.1:8080/login
@@ -235,9 +235,6 @@ userテーブル
     </tr>
     <tr>
         <th>password</th><td>{bcrypt}$2a$10$M5JloOG9EyThd3s/2xocKOU3ojKF5dlMvZnh/tAEbuDHBGrWAfWWa</td>
-    </tr>
-    <tr>
-        <th>enabled</th><td>1</td>
     </tr>
     <tr>
         <th>nickname</th><td>nick</td>
@@ -276,9 +273,9 @@ public class SecurityConfig {
     @Bean
     public UserDetailsManager users(DataSource dataSource){
     	// ログイン処理が開始したら入力されたユーザー名を元にデータを取得する
-    	String USERQUERY = "select username,password,enabled from users where username = ?";
+    	String USERQUERY = "select username,password,'1' from users where username = ?";
     	// 権限についてユーザー名を元にデータを取得する
-    	String AUTHQUERY = "select username,'GENERAL' from authorities where username = ?";
+    	String AUTHQUERY = "select username,authority from authorities where username = ?";
     	JdbcUserDetailsManager users = new JdbcUserDetailsManager(dataSource);
     	users.setUsersByUsernameQuery(USERQUERY);
     	users.setAuthoritiesByUsernameQuery(AUTHQUERY);
@@ -294,8 +291,8 @@ public class SecurityConfig {
 @Controller
 public class LoginController {
     @GetMapping("/login")
-    public void login() {
-        System.out.println("login");
+    public String login() {
+        return "login";
     }
     @GetMapping("/home")
     public String home(@AuthenticationPrincipal UserDetails user) {
@@ -438,7 +435,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException{
 		LoginUser loginUser = service.getLoginUser(username);
 		if(loginUser == null) {
-			throw new UsernameNotFoundException("User" + username + "was not found in the database");
+			throw new UsernameNotFoundException("");
 		}
 		return loginUser;
 	}
@@ -462,12 +459,22 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 ```
 #### LoginController.javaを編集
 ここまでで、User情報を拡張したLoginUserの準備ができています。Controllerから確認できるように一部編集してみます。/homeへのアクセス時の処理を以下のように書き換えて、ユーザーのニックネームが取得できているか、コンソールから確認してみましょう。
+またログインエラー時にエラーメッセージが表示されるように編集しています。
 ```java:LoginController.java
 @Controller
 public class LoginController {
 	@GetMapping("/login")
-	public void login(Model model, HttpSession session) {
-		AuthenticationException ex = (AuthenticationException) session.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+	public String login(@RequestParam(value = "error", required = false) String error,
+    		Model model, HttpSession session) {
+    	if (error != null) {
+    		AuthenticationException ex = (AuthenticationException) session.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+    		if (ex != null) {
+    			System.out.println(ex);
+    			model.addAttribute("showErrorMsg", true);
+    			model.addAttribute("errorMsg", ex.getMessage());
+    		}
+    	}
+		return "login";
 	}
 	@GetMapping("/home")
 	public String home(@AuthenticationPrincipal LoginUser user) {
@@ -475,4 +482,23 @@ public class LoginController {
 		return "home";
 	}
 }
+```
+#### login.htmlを編集
+ログイン時にエラーがあった場合、エラーメッセージが表示されるように以下のように編集します。以上で、ログイン認証機能のカスタマイズが終わります。
+```html:login.html
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+	<head>
+		<meta charset="utf-8">
+	</head>
+	<body>
+		<h1 class="text-center">ログイン</h1>
+		<div th:if="${showErrorMsg}" th:text="${errorMsg}"></div>
+		<form method="post" th:action="@{/login}" class="form-login">
+			<input type="text" class="form-control" placeholder="ユーザーID" name="username" id="username"/>
+			<input type="text" class="form-control" placeholder="パスワード" name="password" id="password"/>
+			<input type="submit" value="ログイン"/>
+		</form>
+	</body>
+</html>
 ```
