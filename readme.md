@@ -6,7 +6,7 @@ SpringBootの開発ではユーザー認証の機能を導入するために、S
 * OS: Windows10
 * Javaのバージョン：11
 * SpringBootのバージョン：2.7.8(SNAPSHOT)
-* データベース：MySQL、MyBatis
+* データベース：H2database、MyBatis
 
 ## 基本設定（データベースを使わないログイン機能の実装）
 ### pom.xmlの編集
