@@ -99,7 +99,6 @@ public class SecurityConfig {
         	.logoutUrl("/logout")
         	.logoutSuccessUrl("/login")
         );
-        System.out.println(this.dataSource);
         return http.build();
     }
 }
@@ -242,7 +241,7 @@ userテーブル
     </tr>
 </table>
 
-authorityテーブル
+authoritiesテーブル
 <table>
     <tr>
         <th>COLUMN_NAME</th><th>VALUE</th>
@@ -470,7 +469,6 @@ public class LoginController {
     	if (error != null) {
     		AuthenticationException ex = (AuthenticationException) session.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
     		if (ex != null) {
-    			System.out.println(ex);
     			model.addAttribute("showErrorMsg", true);
     			model.addAttribute("errorMsg", ex.getMessage());
     		}
