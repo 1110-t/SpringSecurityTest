@@ -75,6 +75,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         // csrf認証は使わない
         http.csrf().disable();
+        // セキュリティヘッダーを使用しない
         http.headers().frameOptions().disable();
         //　cssなどのリソースファイルにはログイン無しでもアクセスが可能
         http.authorizeHttpRequests(authz -> authz
