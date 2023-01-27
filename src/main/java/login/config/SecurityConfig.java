@@ -20,10 +20,12 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     	// csrf認証は使わない
         http.csrf().disable();
+        http.headers().frameOptions().disable();
         //　cssなどのリソースファイルにはログイン無しでもアクセスが可能
         http.authorizeHttpRequests(authz -> authz
             .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
             .mvcMatchers("/").permitAll() // ログインなしでもアクセス可能なページ
+            .antMatchers("/h2-console/**").permitAll()
             .mvcMatchers("/general").hasRole("GENERAL") // 権限GENERALがアクセス可能
             .mvcMatchers("/admin").hasRole("ADMIN") // 権限ADMINがアクセス可能
             .anyRequest().authenticated() // 他のURLについてはログイン後にアクセスが可能となる
